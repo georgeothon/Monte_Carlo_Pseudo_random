@@ -1,0 +1,149 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb,amsmath,graphicx,indentfirst}
+
+\title{EP2 - Método de Monte Carlo}
+\author{George Othon\\NUSP 103xxxxx}
+\date{March 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+
+\par
+Este relatório tem como objetivo analisar os resultados obtidos pelo Método de Monte Carlo nas suas 4 variações ao integrar f(x).
+\[
+f(x) = e ^ {-ax} \cos{bx}
+\]
+
+Com a = 0.RG e b = 0.NUSP, no intervalo [0,1]. (Com RG = 399xxxxxx e NUSP = 103xxxxx, logo, a  = 0.399xxxxxx e b = 103xxxxx ).\\
+
+\section{Bibliotecas}
+Para nos axiliar no manuseio das listas, gerar os números aleatórios e para utilzar funções matemáticas e estatísticas que não temos nas built-in do Python, foi necessário importar as seguintes bibliotecas com as seguintes funções:
+
+
+\begin{enumerate}
+
+    \item Numpy
+    
+        \begin{enumerate}
+        
+            \item exp() - Função exponecial 
+            \item cos() - Cosseno
+            \item std() - Desvio padrão
+            \item sqrt() - Raíz quadrada
+            \item mean() - Média
+            \item random.beta() - Gera números aleatórios com distribuição beta
+            \item cov() - Covariância
+            \item var() - Variância
+            
+        \end{enumerate}
+        
+    \item Random
+    
+        \begin{enumerate}
+        
+            \item random() Gera números aleatórios entre 0 e 1
+            
+        \end{enumerate}
+        
+    \item Scipy
+    
+        \begin{enumerate}
+        
+            \item stats.beta.pdf() - Função de densidade de probabilidade
+            
+        \end{enumerate}
+        
+\end{enumerate}
+
+\section{Critério de parada}
+Como critério de parada utilizamos o erro padrão, onde a cada iteração verificamos se o erro é menor que $1\%
+$, e assim que atendesse o critério, ele calcula a média das iterações e retorna como resultado final.
+%$$\frac{\sigma^2}{\sqrt{n}}$$
+
+\section{Método Crud}
+Este foi o primeiro método que testamos e o mais simples onde apenas calculamos $\frac{1}{n}\sum_{i=1}^n f(x)$, que rendeu bons resultados, e teve desvio padrão de $\sigma = 0.0203$
+        
+
+\section{Método Hit or miss}
+Ao tentar aproximar a integral de f(x) no intervalo [0,1] geramos diversos pares ordenados (x,y) e verificamos se y $\leq$ f(x), ou seja, se o par ordenado tem imagem acima ou abaixo da função f, e usamos essa proporção para aproximar $\int_0^1 f(x)dx$. Apresentou desvio padrão $\sigma = 0.0108$ 
+
+\section{Método Importance Sampling}
+No método em questão, utilizamos um gerador de números pseudo-aleatórios com distribuição beta. Após diversos testes tivemos os melhores resultados com os parâmetros $ \alpha = 0.9 $ e $ \beta = 1.0 $. Nessas condições tivemos boas aproximações, e com diversos testes o desvio padrão foi de $ \sigma = 0.0048$
+
+\section{Método Control Variate}
+No Control Variate, após algumas análises escolhemos como uma aproximação para f(x), a função $ g(x) = e ^ {-ax}$, com a = 0.399104525. Como $ g(x) > f(x), \; \forall x \in [0,1] $, e g(x) é extremamente próxima à f(x).
+\par
+Dividimos este método em duas partes. Na primeira calculamos o resultado da integral pelo método Crud para f(x) e para g(x). Na segunda parte, calculamos o fator \textbf{c} dado por $$c = \frac{-Cov[f(x),g(x)]}{Var[g(x)]}$$ e em seguida calculamos $$Crud(f(x)) + c * (Crud(g(x) - \int_0^1 g(x) dx )$$ onde $\int_0^1 g(x) dx = 0.824$, para obter a aproximação final, que teve excelentes resultados apresentando desvio padrão $\sigma = 0.0006$
+
+\section{Comparando os métodos}
+
+Rodamos cada método 1000 vezes e fizemos o seguinte resumo estatístico com o auxílio da biblioteca pandas. 
+\par 
+Utilizamos o jupiter notebook para gerar a tabela a seguir, e incluimos como uma imagem no artigo. Para a criação da tabela foram usadas as funções DataFrame() e describe().
+
+\hfill
+
+%Tabela (imagem) análise descritiva
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[scale=0.7]{Análise Descritiva.PNG}
+    \caption{Análise Descritiva ( n = 1000 )}
+    \label{fig:my_label}
+\end{figure}
+
+\hfill
+
+\par
+Ao análisar a tabela acima percebemos que para todos os métodos a média e a mediana ( 50\% ) fica próximo à 0.82. O método Crud foi o que teve a maior variação e o Control Variate teve a menor. Mas escolhemos o desvio padrão para analisar o desempenho de cada método, e com base nesse parametro fizemos a seguinte classificação dos métodos.
+
+\hfill
+
+% Tabela de classificação dos métodos
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{c|c|c}
+         & Método & Desvio padrão \\
+         \hline
+        1 & Control Variate & 0.0006 \\
+        \hline
+        2 & Importance Sampling & 0.0048 \\
+        \hline
+        3 & Hit or miss & 0.0108 \\
+        \hline
+        4 & Crud & 0.0203 \\
+        
+    \end{tabular}
+    \caption{Classificação dos métodos}
+    \label{tab:my_label}
+\end{table}
+
+\hfill
+
+\par 
+Portanto, dentre os quatro métodos que implementamos, o que retornou os melhores resultados foi o Método Control Variate utilizando a função g como aproximação para f.
+
+\hfill
+
+%Referências bibliográficas 
+
+\begin{thebibliography}{4}
+
+\bibitem{NumPy}
+https://numpy.org/doc/
+\bibitem{Random}
+https://docs.python.org/3/library/random.html
+\bibitem{SciPy}
+https://docs.scipy.org/doc/scipy/reference/stats.html
+\bibitem{Livro}
+Cognitive Constructivism and the Epistemic Significance of Sharp Statistical Hypotheses in Natural Sciences - Julio Stern
+
+\end{thebibliography}
+
+    
+\end{document}
